@@ -24,41 +24,52 @@ new Vue({
             this.hayUnaPartidaEnJuego = true
             this.saludJugador = 100
             this.saludMonstruo = 100
+            this.turnos = []
         },
 
         atacar() {
             var danio = this.calcularHeridas(this.rangoAtaque[0], this.rangoAtaque[1])
-            this.saludMonstruo -= danio,
-                this.turnos.push(
-                    {
-                        esJugador: true,
-                        mensaje: `el jugador le causo ${danio} de daño al monstruo`
-                    })
-            this.ataqueDelMonstruo()
+            this.saludMonstruo -= danio;
+            this.turnos.unshift({
+                esJugador: true,
+                mensaje: `el jugador le causo ${danio} de daño al monstruo`
+            });
+            if (this.verificarGanador()) {
+                return;
+            }
+            this.ataqueDelMonstruo();
         },
+
 
         ataqueEspecial() {
             var danio = this.calcularHeridas(3, 4)
-            this.saludMonstruo -= danio,
-                this.turnos.push(
-                    {
-                        esJugador: true,
-                        mensaje: `el jugador le causo ${danio} de daño al monstruo`
-                    })
-            this.ataqueDelMonstruo()
+            this.saludMonstruo -= danio;
+            this.turnos.unshift({
+                esJugador: true,
+                mensaje: `el jugador ha causado un ataque especial que le causo ${danio} de daño al monstruo`
+            })
+            if (this.verificarGanador()) {
+                return;
+            }
+            this.ataqueDelMonstruo();
         },
+
 
         curar() {
             if (this.saludJugador <= this.condicionParaCurarPoco) {
-                if ((this.saludJugador += this.curarPoco) <= 100) {
-                    this.saludJugador += this.curarPoco
-                } else {
-                    this.saludJugador = this.curarTodo
-                }
+                this.saludJugador += this.curarPoco
+                this.turnos.unshift({
+                    esJugador: true,
+                    mensaje: `el jugador se curo ${this.curarPoco} puntos`
+                });
             } else {
                 this.saludJugador = this.curarTodo
+                this.turnos.unshift({
+                    esJugador: true,
+                    mensaje: `el jugador se curo ${this.curarTodo} puntos`
+                });
             }
-            /* this.ataqueDelMonstruo() */
+            this.ataqueDelMonstruo()
         },
 
         registrarEvento(evento) {
@@ -70,39 +81,36 @@ new Vue({
         },
 
         ataqueDelMonstruo() {
-            var danio = this.calcularHeridas(2, 8)
-            this.saludJugador -= danio
-            turnos.push(
-                {
-                    esJugador: false,
-                    mensaje: `el monstruo le causo ${danio} de daño al jugador`
-                }
-            )
-            this.verificarGanador()
+            var danio = this.calcularHeridas(this.rangoAtaqueDelMonstruo[0], this.rangoAtaqueDelMonstruo[1]);
+            this.saludJugador -= danio;
+            this.turnos.unshift({
+                esJugador: false,
+                mensaje: `el monstruo le causo ${danio} de daño al jugador`
+            });
+            this.verificarGanador();
         },
 
-        calcularHeridas: function (min, max) {
+        calcularHeridas(min, max) {
             return Math.max(Math.floor(Math.random() * max) + 1, min)
 
         },
-        verificarGanador: function () {
+        verificarGanador() {
             if (this.saludMonstruo <= 0) {
-                if (confirm(`Ganaste! ¿queres jugar de nuevo?`)) {
-                    this.empezarPartida()
+                if (confirm('Ganaste! ¿queres jugar de nuevo?')) {
+                    this.empezarPartida();
                 } else {
-                    this.hayUnaPartidaEnJuego = false
+                    this.hayUnaPartidaEnJuego = false;
                 }
-                return true
+                return true;
             } else if (this.saludJugador <= 0) {
                 if (confirm(`Perdiste... ¿queres jugar de nuevo?`)) {
-                    this.empezarPartida()
+                    this.empezarPartida();
                 } else {
-                    this.hayUnaPartidaEnJuego = false
+                    this.hayUnaPartidaEnJuego = false;
                 }
-                return true
+                return true;
             }
-
-            return false
+            return false;
         },
         cssEvento(turno) {
             //Este return de un objeto es prque vue asi lo requiere, pero ponerlo acá queda mucho mas entendible en el codigo HTML.
